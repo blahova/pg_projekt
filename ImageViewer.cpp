@@ -264,7 +264,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 	}
 	
 
-	else if (!o.body.isEmpty() && e->button() == Qt::LeftButton)
+	else if (!o.body.isEmpty() && e->button() == Qt::LeftButton && !w->getDrawLineActivated())
 	{
 		lastPos = e->pos();
 		posuvam = true;
@@ -312,6 +312,10 @@ void ImageViewer::zobraz_objekty()
 	}
 	ui->treeWidget->expandItem(parent);
 	ui->treeWidget->blockSignals(false);
+
+	QTreeWidgetItem* parentItem = ui->treeWidget->topLevelItem(0);
+	QTreeWidgetItem* item = parentItem->child(0);
+	ui->treeWidget->setCurrentItem(item);
 }
 
 void ImageViewer::kresli_objekty()
@@ -412,19 +416,55 @@ void ImageViewer::on_actionOpen_triggered()
 {
 	QString folder = settings.value("folder_img_load_path", "").toString();
 
-	QString fileFilter = "Image data (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm .*xbm .* xpm);;All files (*)";
+	QString fileFilter = "Txt Files (*.txt)";
 	QString fileName = QFileDialog::getOpenFileName(this, "Load image", folder, fileFilter);
 	if (fileName.isEmpty()) { return; }
 
 	QFileInfo fi(fileName);
 	settings.setValue("folder_img_load_path", fi.absoluteDir().absolutePath());
 
-	if (!openImage(fileName)) {
-		msgBox.setText("Unable to open image.");
-		msgBox.setIcon(QMessageBox::Warning);
-		msgBox.exec();
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		return;
 	}
+
+	QTextStream in(&file);
+
+	while (!in.atEnd()) {
+		o.body.clear();
+		QString line = in.readLine();
+		if (line.isEmpty()) {
+			continue;
+		}
+		o.id = line.toInt();
+		QStringList parts;
+		parts = in.readLine().split(" ");
+		o.color.setRed(parts[0].toInt());
+		o.color.setGreen(parts[1].toInt());
+		o.color.setBlue(parts[2].toInt());
+		
+		o.vypln = in.readLine().toInt();
+		o.z = in.readLine().toInt();
+
+		line = in.readLine();
+		while (!line.isEmpty())	//budem pokracovat, kym v riadku nieco bude, ak uz nebude tak som na dalsom objekte
+		{
+			parts = line.split(" ");
+			QPoint bod(parts[0].toInt(), parts[1].toInt());
+			line = in.readLine();
+			o.body.push_back(bod);
+		}
+		objekty.push_back(o);
+	}
+
+	ui->groupBox_transform->setEnabled(true);
+	ui->pushButton_vymaz->setEnabled(true);
+	kresli_objekty();
+	zobraz_objekty();
 }
+
+
 void ImageViewer::on_actionSave_as_triggered()
 {
 	QString folder = settings.value("folder_img_save_path", "").toString();
@@ -446,14 +486,44 @@ void ImageViewer::on_actionSave_as_triggered()
 		msgBox.exec();
 	}
 }
+void ImageViewer::on_actionSave_as_data_triggered()
+{
+	QString folder = settings.value("folder_img_save_path", "").toString();
+
+	QString fileFilter = "Txt Files (*.txt)";
+	QString fileName = QFileDialog::getSaveFileName(this, "Save data", folder, fileFilter);
+
+	if (fileName.isEmpty()) { return; }
+
+	QFileInfo fi(fileName);
+	settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
+
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		return;
+	}
+	QTextStream out(&file);
+	for (int i = 0; i < objekty.size(); i++)
+	{
+		out << objekty[i].id << "\n";
+		out << objekty[i].color.red()<<" " << objekty[i].color.green()<<" " << objekty[i].color.blue() << "\n";
+		out << objekty[i].vypln<<"\n";
+		out << objekty[i].z<<"\n";
+		for (int j = 0; j < objekty[i].body.size(); j++)
+		{
+			out << objekty[i].body[j].x() << " " << objekty[i].body[j].y() << "\n";
+		}
+		out << "\n";
+	}
+	file.close();
+}
+
 void ImageViewer::on_actionClear_triggered()
 {
 	vW->clear();
 }
-void ImageViewer::on_actionExit_triggered()
-{
-	this->close();
-}
+
 
 void ImageViewer::on_pushButton_z_clicked()
 {
@@ -481,10 +551,11 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 void ImageViewer::on_pushButton_vymaz_clicked()
 {
 	vW->clear();
-	ui->groupBox_kreslenie->setEnabled(true);
+
 	ui->pushButton_vymaz->setEnabled(false);
 	ui->groupBox_transform->setEnabled(false);
 	objekty.clear();
+	zobraz_objekty();
 }
 
 

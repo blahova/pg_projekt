@@ -69,7 +69,7 @@ private slots:
 	void on_actionOpen_triggered();
 	void on_actionSave_as_triggered();
 	void on_actionClear_triggered();
-	void on_actionExit_triggered();
+	void on_actionSave_as_data_triggered();
 
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
