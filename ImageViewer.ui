@@ -211,6 +211,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_vypln">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Vyplnit</string>
           </property>

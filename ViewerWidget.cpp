@@ -128,7 +128,8 @@ void ViewerWidget::setPixel(int x, int y, const QColor& color, int z)
 {
 	if (color.isValid()) {
 		size_t startbyte = y * img->bytesPerLine() + x * 4;
-
+		if (y == getImgHeight()) { y = getImgHeight() - 1; }
+		if (x == getImgWidth()) { x = getImgWidth() - 1; }
 		if (Z[x][y] < z)
 		{
 			Z[x][y] = z;
@@ -794,11 +795,15 @@ void ViewerWidget::Bezier(QVector<QPoint>& v, QColor color, int z)
 			}
 		}
 		Q1 = P[v.size() - 1][0];
-		drawLine(QPoint(Q0.x() + 0.5, Q0.y() + 0.5), QPoint(Q1.x() + 0.5, Q1.y() + 0.5), color,z);
+		QVector <QPoint> f = { QPoint(Q0.x() + 0.5, Q0.y() + 0.5) , QPoint(Q1.x() + 0.5, Q1.y() + 0.5) };
+		checkPolygon(f, color, 0, z);
 		Q0 = Q1;
 		t += delta_t;
 	}
-	drawLine(Q0, v[v.size() - 1], color,z);
+
+	QVector <QPoint> f = { Q0, v[v.size() - 1] };
+	checkPolygon(f, color, 0,z);
+	//drawLine(Q0, v[v.size() - 1], color,z);
 }
 
 
@@ -825,8 +830,8 @@ void ViewerWidget::checkPolygon(QVector<QPoint>& v, QColor color, bool vyplnit, 
 			CyrusBeck(v, orezany);
 			if (!orezany.isEmpty())	//vykresli sa len ak je neprazdny. V pripade ze oba body su vonku tak vektor bude prazdny
 			{
-				drawPolygon(orezany, color, z, algType);
-				//drawLine(orezany[0], orezany[1], color, algType);
+				//drawPolygon(orezany, color, z, algType);
+				drawLine(orezany[0], orezany[1], color,z, algType);
 			}
 			//qDebug() << orezany;
 		}

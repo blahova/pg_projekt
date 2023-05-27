@@ -18,6 +18,12 @@ ImageViewer::ImageViewer(QWidget* parent)
 	globalColor = Qt::blue;
 	QString style_sheet = QString("background-color: #%1;").arg(globalColor.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
+
+	ui->buttonGroup->setId(ui->radioButton_polygon, 0);
+	ui->buttonGroup->setId(ui->radioButton_usecka, 1);
+	ui->buttonGroup->setId(ui->radioButton_obdlznik, 2);
+	ui->buttonGroup->setId(ui->radioButton_kruznica, 3);
+	ui->buttonGroup->setId(ui->radioButton_bezier, 4);
 }
 
 // Event filters
@@ -223,6 +229,8 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 		if (w->getDrawLineActivated())	//ak to nie je prvy bod
 		{
 			o.body.push_back(e->pos());
+			w->setPixel(e->pos().x(), e->pos().y(), o.color, o.z);
+			w->update();
 		}
 		else	//ak to je prvy bod 
 		{
@@ -409,6 +417,18 @@ void ImageViewer::on_treeWidget_currentItemChanged(QTreeWidgetItem* current, QTr
 	QString style_sheet = QString("background-color: #%1;").arg(objekty[ui->treeWidget->currentIndex().row()].color.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 	ui->spinBox_z->setValue(objekty[ui->treeWidget->currentIndex().row()].z);
+
+	int index = ui->treeWidget->currentIndex().row();
+	if (objekty[index].id == 1 || objekty[index].id == 3 || objekty[index].id == 4)
+	{
+		ui->checkBox_vypln->setChecked(objekty[index].vypln);
+		ui->checkBox_vypln->setEnabled(false);
+	}
+	else
+	{
+		ui->checkBox_vypln->setEnabled(true);
+		ui->checkBox_vypln->setChecked(objekty[index].vypln);	
+	}
 }
 
 
@@ -431,6 +451,7 @@ void ImageViewer::on_actionOpen_triggered()
 
 	QTextStream in(&file);
 
+	objekty.clear();
 	while (!in.atEnd()) {
 		o.body.clear();
 		QString line = in.readLine();
@@ -554,11 +575,27 @@ void ImageViewer::on_pushButton_vymaz_clicked()
 
 	ui->pushButton_vymaz->setEnabled(false);
 	ui->groupBox_transform->setEnabled(false);
+	ui->checkBox_vypln->setEnabled(false);
 	objekty.clear();
 	zobraz_objekty();
 }
 
-
+void ImageViewer::on_checkBox_vypln_stateChanged(int state)
+{
+	int index = ui->treeWidget->currentIndex().row();
+	if (objekty[index].id == 0 || objekty[index].id == 2)
+	{
+		if (state == 0)
+		{
+			objekty[index].vypln = false;
+		}
+		else if (state == 2)
+		{
+			objekty[index].vypln = true;
+		}
+	}
+	kresli_objekty();
+}
 
 void ImageViewer::on_pushButton_otocenie_clicked()
 {
@@ -576,4 +613,10 @@ void ImageViewer::on_pushButton_osova_clicked()
 {
 	vW->preklop(objekty[ui->treeWidget->currentIndex().row()].body);
 	kresli_objekty();
+}
+
+void ImageViewer::on_buttonGroup_buttonClicked(QAbstractButton* button)
+{
+	ui->checkBox_vypln->setChecked(false);
+	ui->checkBox_vypln->setEnabled(false);
 }

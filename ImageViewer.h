@@ -75,6 +75,8 @@ private slots:
 	void on_pushButtonSetColor_clicked();
 	void on_pushButton_vymaz_clicked();
 	void on_treeWidget_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
+	void on_checkBox_vypln_stateChanged(int state);
+	void on_buttonGroup_buttonClicked(QAbstractButton* button);
 	
 	void on_pushButton_otocenie_clicked();
 	void on_pushButton_skalovanie_clicked();
