@@ -99,6 +99,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setDrawLineActivated(false);
 			ui->pushButton_vymaz->setEnabled(true);	//zapnem vymazavanie
 			ui->groupBox_transform->setEnabled(true);	//zapnem transformacie
+			ui->groupBox_vrstvy->setEnabled(true);
 			zobraz_objekty();
 
 			ui->buttonGroup->setExclusive(false);
@@ -125,6 +126,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setDrawLineActivated(false);
 			ui->pushButton_vymaz->setEnabled(true);	//zapnem vymazavanie
 			ui->groupBox_transform->setEnabled(true);	//zapnem transformacie
+			ui->groupBox_vrstvy->setEnabled(true);
 			zobraz_objekty();
 
 			ui->buttonGroup->setExclusive(false);
@@ -164,6 +166,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setDrawLineActivated(false);
 			ui->pushButton_vymaz->setEnabled(true);	//zapnem vymazavanie
 			ui->groupBox_transform->setEnabled(true);	//zapnem transformacie
+			ui->groupBox_vrstvy->setEnabled(true);
 			zobraz_objekty();
 
 			ui->buttonGroup->setExclusive(false);
@@ -200,6 +203,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setDrawLineActivated(false);
 			ui->pushButton_vymaz->setEnabled(true);	//zapnem vymazavanie
 			ui->groupBox_transform->setEnabled(true);	//zapnem transformacie
+			ui->groupBox_vrstvy->setEnabled(true);
 			zobraz_objekty();
 
 			ui->buttonGroup->setExclusive(false);
@@ -254,6 +258,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setDrawLineActivated(false);
 			ui->pushButton_vymaz->setEnabled(true);	//zapnem vymazavanie
 			ui->groupBox_transform->setEnabled(true);	//zapnem transformacie
+			ui->groupBox_vrstvy->setEnabled(true);
 			zobraz_objekty();
 
 			ui->buttonGroup->setExclusive(false);
@@ -542,6 +547,14 @@ void ImageViewer::on_actionSave_as_data_triggered()
 
 void ImageViewer::on_actionClear_triggered()
 {
+	ui->pushButton_vymaz->setEnabled(false);
+	ui->groupBox_transform->setEnabled(false);
+	ui->checkBox_vypln->setEnabled(false);
+	ui->checkBox_vypln->setChecked(false);
+	ui->groupBox_vrstvy->setEnabled(false);
+	objekty.clear();
+	zobraz_objekty();
+
 	vW->clear();
 }
 
@@ -571,13 +584,15 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 
 void ImageViewer::on_pushButton_vymaz_clicked()
 {
-	vW->clear();
-
 	ui->pushButton_vymaz->setEnabled(false);
 	ui->groupBox_transform->setEnabled(false);
 	ui->checkBox_vypln->setEnabled(false);
+	ui->checkBox_vypln->setChecked(false);
+	ui->groupBox_vrstvy->setEnabled(false);
 	objekty.clear();
 	zobraz_objekty();
+
+	vW->clear();
 }
 
 void ImageViewer::on_checkBox_vypln_stateChanged(int state)
@@ -585,13 +600,16 @@ void ImageViewer::on_checkBox_vypln_stateChanged(int state)
 	int index = ui->treeWidget->currentIndex().row();
 	if (objekty[index].id == 0 || objekty[index].id == 2)
 	{
-		if (state == 0)
+		if (ui->checkBox_vypln->isEnabled())
 		{
-			objekty[index].vypln = false;
-		}
-		else if (state == 2)
-		{
-			objekty[index].vypln = true;
+			if (state == 0)
+			{
+				objekty[index].vypln = false;
+			}
+			else if (state == 2)
+			{
+				objekty[index].vypln = true;
+			}
 		}
 	}
 	kresli_objekty();
@@ -599,8 +617,11 @@ void ImageViewer::on_checkBox_vypln_stateChanged(int state)
 
 void ImageViewer::on_pushButton_otocenie_clicked()
 {
-	vW->otoc(objekty[ui->treeWidget->currentIndex().row()].body, ui->spinBox_stupne->value());
-	kresli_objekty();
+	if (objekty[ui->treeWidget->currentIndex().row()].id != 3)
+	{
+		vW->otoc(objekty[ui->treeWidget->currentIndex().row()].body, ui->spinBox_stupne->value());
+		kresli_objekty();
+	}
 }
 
 void ImageViewer::on_pushButton_skalovanie_clicked()
@@ -611,12 +632,15 @@ void ImageViewer::on_pushButton_skalovanie_clicked()
 
 void ImageViewer::on_pushButton_osova_clicked()
 {
-	vW->preklop(objekty[ui->treeWidget->currentIndex().row()].body);
-	kresli_objekty();
+	if (objekty[ui->treeWidget->currentIndex().row()].id != 3)
+	{
+		vW->preklop(objekty[ui->treeWidget->currentIndex().row()].body);
+		kresli_objekty();
+	}
 }
 
 void ImageViewer::on_buttonGroup_buttonClicked(QAbstractButton* button)
 {
-	ui->checkBox_vypln->setChecked(false);
 	ui->checkBox_vypln->setEnabled(false);
+	ui->checkBox_vypln->setChecked(false);
 }

@@ -341,7 +341,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="groupBox_3">
+      <widget class="QGroupBox" name="groupBox_vrstvy">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="title">
         <string>Vrstvy</string>
        </property>
@@ -368,7 +371,14 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QSpinBox" name="spinBox_z"/>
+           <widget class="QSpinBox" name="spinBox_z">
+            <property name="minimum">
+             <number>-100</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_z">
